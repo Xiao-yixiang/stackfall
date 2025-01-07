@@ -58,23 +58,25 @@
 </style>
 <script>
     $(document).ready(function() {
-        $('#dropdownButton').click(function(event) {
-            event.stopPropagation();
-            $('#dropdownMenu').toggleClass('show');
+        const dropdownMenu = $('#dropdownMenu');
+        const dropdownButton = $('#dropdownButton');
+        const navbar = $('#navbar');
+        const hamburger = $('#hamburger');
+
+        // 使用事件委托优化点击处理
+        $(document).on('click', function(event) {
+            if (!dropdownButton.is(event.target) && !dropdownButton.has(event.target).length) {
+                dropdownMenu.removeClass('show');
+            }
         });
 
-        $(document).click(function(event) {
-            if (!$(event.target).closest('#dropdownButton').length) {
-                $('#dropdownMenu').removeClass('show');
-            }
+        dropdownButton.on('click', function(event) {
+            event.stopPropagation();
+            dropdownMenu.toggleClass('show');
         });
-        document.getElementById('hamburger').addEventListener('click', function() {
-            var navbar = document.getElementById('navbar');
-            if (navbar.style.left === '0%') {
-                navbar.style.left = '100%';
-            } else {
-                navbar.style.left = '0%';
-            }
+
+        hamburger.on('click', function() {
+            navbar.css('left', navbar.css('left') === '0%' ? '100%' : '0%');
         });
     });
 </script></head>
@@ -84,7 +86,12 @@
         <div class="container px-4">
             <div class="flex justify-between items-center">
             <h1 class="flex items-center">
-                <img src="https://i.imgur.com/yMXnYFZ.jpeg" alt="Stackfall Logo" class="mr-2 h-12"> 
+                <img 
+                    src="https://i.imgur.com/yMXnYFZ.jpeg" 
+                    alt="Stackfall Logo" 
+                    class="mr-2 h-12"
+                    onerror="this.onerror=null; this.src='favicon.ico';"
+                > 
                 <a class="font-black text-3xl" href="/">Stack Fall</a>
             </h1>
                 <button class="block lg:hidden cursor-pointer h-10 z-20" type="button" id="hamburger">
@@ -108,19 +115,22 @@
     </nav>
 </div>
 <section
-  class="ezy__header29 light py-10 md:py-16 text-white bg-cover bg-center bg-no-repeat relative"
-  style="background-image: url(https://cdn.easyfrontend.com/pictures/hero/hero_30.png)"
+  class="ezy__header29 light py-10 md:py-16 text-white relative"
+  style="background-color: #0b1727;"
 >
   <div class="container px-4 mx-auto">
     <div class="md:max-w-5xl mx-auto flex justify-center items-center text-center">
-    <div class="w-full">
-        <iframe src="https://www.crazygames.com/embed/stack-fall-xsv" 
-                class="w-full border border-gray-300 rounded" 
-                style="height: 600px;"
-                frameborder="0" 
-                allowfullscreen>
+      <div class="w-full">
+        <iframe 
+          src="https://www.crazygames.com/embed/stack-fall-xsv" 
+          class="w-full border border-gray-300 rounded lazy"
+          loading="lazy"
+          style="height: 600px;"
+          title="Stack Fall Game"
+          frameborder="0" 
+          allowfullscreen>
         </iframe>
-    </div>
+      </div>
     </div>
   </div>
 </section>

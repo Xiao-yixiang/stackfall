@@ -23,36 +23,56 @@
 
     <script>
         const { createFFmpeg, fetchFile } = FFmpeg;
-
         const ffmpeg = createFFmpeg({ log: true });
-
-        window.onload = async () => {
-            await ffmpeg.load();
-
-            document.getElementById('uploadForm').addEventListener('submit', async function(event) {
-                event.preventDefault();
-                const fileInput = document.getElementById('fileInput');
+        
+        // 优化文件处理
+        async function handleFileConversion(file) {
+            try {
                 const messageDiv = document.getElementById('message');
                 const downloadLink = document.getElementById('downloadLink');
-
-                if (fileInput.files.length === 0) {
-                    messageDiv.textContent = '请上传一个 MTS 文件。';
-                    return;
-                }
-
+                
                 messageDiv.textContent = '文件上传成功！正在转换...';
-
-                ffmpeg.FS('writeFile', 'input.mts', await fetchFile(fileInput.files[0]));
-                await ffmpeg.run('-i', 'input.mts', 'output.mp4');
-
-                const data = ffmpeg.FS('readFile', 'output.mp4');
+                
+                // 使用更高效的方式处理文件
+                const inputFileName = 'input.mts';
+                const outputFileName = 'output.mp4';
+                
+                ffmpeg.FS('writeFile', inputFileName, await fetchFile(file));
+                await ffmpeg.run('-i', inputFileName, '-c:v', 'libx264', '-preset', 'fast', outputFileName);
+                
+                const data = ffmpeg.FS('readFile', outputFileName);
                 const blob = new Blob([data.buffer], { type: 'video/mp4' });
+                
+                // 清理文件系统
+                ffmpeg.FS('unlink', inputFileName);
+                ffmpeg.FS('unlink', outputFileName);
+                
                 downloadLink.href = URL.createObjectURL(blob);
                 downloadLink.classList.remove('hidden');
                 downloadLink.textContent = '下载 MP4 文件';
                 messageDiv.textContent = '转换完成！';
+            } catch (error) {
+                console.error('转换错误:', error);
+                messageDiv.textContent = '转换过程中出现错误，请重试。';
+            }
+        }
+
+        window.addEventListener('load', async () => {
+            await ffmpeg.load();
+            
+            document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const fileInput = document.getElementById('fileInput');
+                const messageDiv = document.getElementById('message');
+                
+                if (!fileInput.files.length) {
+                    messageDiv.textContent = '请上传一个 MTS 文件。';
+                    return;
+                }
+                
+                await handleFileConversion(fileInput.files[0]);
             });
-        };
+        });
     </script>
 </body>
 </html>
